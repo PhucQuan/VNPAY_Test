@@ -59,9 +59,15 @@ function stringifyParams(params) {
     .join("&");
 }
 
+function stringifyParamsRaw(params) {
+  return Object.entries(params)
+    .map(([key, value]) => `${key}=${value}`)
+    .join("&");
+}
+
 function createSecureHash(params) {
   const sorted = sortObject(params);
-  const signData = stringifyParams(sorted);
+  const signData = stringifyParamsRaw(sorted);
   return crypto.createHmac("sha512", config.hashSecret).update(signData, "utf8").digest("hex");
 }
 
@@ -82,22 +88,104 @@ function htmlPage(title, body) {
   <title>${title}</title>
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: Arial, sans-serif; background: #f5f7fb; color: #172033; }
-    main { max-width: 860px; margin: 48px auto; padding: 0 20px; }
-    section { background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; padding: 28px; box-shadow: 0 10px 30px rgba(16, 24, 40, .08); }
-    h1 { margin: 0 0 16px; font-size: 28px; }
+    :root {
+      --ink: #101828;
+      --muted: #667085;
+      --line: #d9e2ec;
+      --soft: #f6f8fb;
+      --brand: #0b66c3;
+      --brand-dark: #084b8f;
+      --green: #057647;
+      --red: #b42318;
+      --amber: #b54708;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #eef5fb 0, #f7f9fc 280px, #f7f9fc 100%);
+      color: var(--ink);
+    }
+    main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 44px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: .2px; }
+    .logo { width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center; background: #fff; border: 1px solid var(--line); color: var(--brand); box-shadow: 0 8px 24px rgba(16, 24, 40, .08); }
+    .badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #fff; border: 1px solid var(--line); color: var(--brand-dark); font-size: 13px; font-weight: 700; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr); gap: 20px; align-items: stretch; }
+    .panel { background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 16px 40px rgba(16, 24, 40, .09); }
+    .intro { padding: 30px; }
+    h1 { margin: 0; font-size: 34px; line-height: 1.15; letter-spacing: 0; }
+    h2 { margin: 0 0 14px; font-size: 20px; }
+    p { line-height: 1.55; }
+    .lead { margin: 14px 0 0; color: var(--muted); font-size: 16px; }
+    .payment-card { padding: 24px; }
     label { display: block; margin-bottom: 8px; font-weight: 700; }
-    input { width: 100%; padding: 12px 14px; border: 1px solid #bac7d6; border-radius: 6px; font-size: 16px; }
-    button, a.button { display: inline-block; margin-top: 18px; border: 0; border-radius: 6px; padding: 12px 18px; background: #0f766e; color: #fff; font-weight: 700; text-decoration: none; cursor: pointer; }
-    table { width: 100%; border-collapse: collapse; margin-top: 18px; background: #fff; }
-    th, td { border: 1px solid #d9e1ec; padding: 10px 12px; text-align: left; vertical-align: top; word-break: break-word; }
-    th { width: 32%; background: #eef4f8; }
-    .success { color: #047857; }
-    .failed { color: #b42318; }
-    .muted { color: #667085; }
+    .input-wrap { position: relative; }
+    input[type="number"] { width: 100%; padding: 14px 56px 14px 14px; border: 1px solid #b8c7d9; border-radius: 8px; font-size: 18px; font-weight: 700; outline: none; }
+    input[type="number"]:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(11, 102, 195, .16); }
+    .currency { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 700; }
+    .actions { display: grid; gap: 10px; margin-top: 18px; }
+    button, a.button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 46px;
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 18px;
+      background: var(--brand);
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    button:hover, a.button:hover { background: var(--brand-dark); }
+    .secondary { background: #344054; }
+    .secondary:hover { background: #182230; }
+    .note { margin-top: 14px; padding: 12px 14px; border-radius: 8px; border: 1px solid #fedf89; background: #fffaeb; color: var(--amber); font-size: 14px; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+    .step { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .step-num { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: #e6f1fb; color: var(--brand-dark); font-weight: 800; font-size: 13px; margin-bottom: 8px; }
+    .step-title { font-weight: 800; margin-bottom: 4px; }
+    .step small { color: var(--muted); line-height: 1.4; display: block; }
+    .result-head { padding: 24px 26px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .result-body { padding: 24px 26px 28px; }
+    .status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; font-weight: 800; font-size: 14px; }
+    .status.success { background: #ecfdf3; color: var(--green); }
+    .status.failed { background: #fef3f2; color: var(--red); }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    th, td { border-bottom: 1px solid var(--line); padding: 13px 14px; text-align: left; vertical-align: top; word-break: break-word; }
+    tr:last-child th, tr:last-child td { border-bottom: 0; }
+    th { width: 34%; background: #f3f6fa; color: #344054; font-size: 14px; }
+    td { font-weight: 700; }
+    .success { color: var(--green); }
+    .failed { color: var(--red); }
+    .muted { color: var(--muted); }
+    @media (max-width: 820px) {
+      main { padding: 18px 14px 32px; }
+      .topbar, .result-head { align-items: flex-start; flex-direction: column; }
+      .hero { grid-template-columns: 1fr; }
+      .intro, .payment-card, .result-body, .result-head { padding: 20px; }
+      h1 { font-size: 28px; }
+      .steps { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 520px) {
+      .steps { grid-template-columns: 1fr; }
+      th, td { display: block; width: 100%; }
+      th { border-bottom: 0; padding-bottom: 4px; }
+      td { padding-top: 4px; }
+    }
   </style>
 </head>
-<body><main><section>${body}</section></main></body>
+<body>
+  <main>
+    <div class="topbar">
+      <div class="brand"><div class="logo">VN</div><div>VNPAY Sandbox Demo</div></div>
+      <div class="badge">Merchant: ${config.tmnCode}</div>
+    </div>
+    ${body}
+  </main>
+</body>
 </html>`;
 }
 
@@ -213,6 +301,84 @@ function importantRows(params) {
     .join("");
 }
 
+function importantRowsPretty(params) {
+  const labels = {
+    vnp_TxnRef: "Mã đơn hàng",
+    vnp_Amount: "Số tiền",
+    vnp_BankCode: "Ngân hàng thanh toán",
+    vnp_TransactionNo: "Mã giao dịch VNPAY",
+    vnp_PayDate: "Thời gian thanh toán",
+    vnp_ResponseCode: "Mã phản hồi",
+    vnp_TransactionStatus: "Trạng thái giao dịch",
+    vnp_OrderInfo: "Nội dung thanh toán"
+  };
+
+  return Object.entries(labels)
+    .filter(([key]) => params[key])
+    .map(([key, label]) => {
+      const value = key === "vnp_Amount" ? `${(Number(params[key]) / 100).toLocaleString("vi-VN")} đ` : params[key];
+      return `<tr><th>${label}</th><td>${value}</td></tr>`;
+    })
+    .join("");
+}
+
+function renderResult(params, validHash, success, statusClass, message) {
+  return `
+    <section class="panel">
+      <div class="result-head">
+        <div>
+          <h1 class="${statusClass}">${message}</h1>
+          <p class="lead">Hệ thống đã nhận dữ liệu trả về từ VNPAY và kiểm tra chữ ký bảo mật.</p>
+        </div>
+        <div class="status ${statusClass}">${success ? "ĐÃ THANH TOÁN" : "KHÔNG THÀNH CÔNG"}</div>
+      </div>
+      <div class="result-body">
+        <p class="muted">Xác thực SecureHash: <strong>${validHash ? "Hợp lệ" : "Không hợp lệ"}</strong></p>
+        <table>${importantRowsPretty(params)}</table>
+        <a class="button" href="/">Tạo giao dịch mới</a>
+      </div>
+    </section>
+  `;
+}
+
+function renderHome(usingDemoConfig) {
+  return `
+    <section class="hero">
+      <div class="panel intro">
+        <h1>Thanh toán đơn hàng qua VNPAY</h1>
+        <p class="lead">Demo tích hợp Payment URL, SecureHash, Return URL và IPN webhook trên môi trường sandbox.</p>
+        ${usingDemoConfig ? "<div class=\"note\">Đang dùng cấu hình placeholder. Hãy điền TmnCode và HashSecret sandbox trong file .env để thanh toán thật.</div>" : "<div class=\"note\">Đã cấu hình merchant sandbox. Có thể bấm thanh toán để chuyển sang cổng VNPAY.</div>"}
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-title">Tạo đơn</div><small>Nhập số tiền và tạo yêu cầu thanh toán.</small></div>
+          <div class="step"><div class="step-num">2</div><div class="step-title">Redirect</div><small>Backend ký HMAC SHA512 rồi chuyển sang VNPAY.</small></div>
+          <div class="step"><div class="step-num">3</div><div class="step-title">Thẻ test</div><small>Chọn NCB và nhập OTP sandbox.</small></div>
+          <div class="step"><div class="step-num">4</div><div class="step-title">Kết quả</div><small>Website xác thực hash và hiển thị dữ liệu trả về.</small></div>
+        </div>
+      </div>
+      <div class="panel payment-card">
+        <h2>Thông tin thanh toán</h2>
+        <form method="post" action="/create-payment">
+          <label for="amount">Số tiền thanh toán</label>
+          <div class="input-wrap">
+            <input id="amount" name="amount" type="number" min="10000" step="1000" value="100000" required>
+            <span class="currency">VND</span>
+          </div>
+          <div class="actions">
+            <button type="submit">Thanh toán qua VNPAY</button>
+          </div>
+        </form>
+        <form method="post" action="/simulate-payment">
+          <input name="amount" type="hidden" value="100000">
+          <div class="actions">
+            <button class="secondary" type="submit">Xem kết quả giả lập local</button>
+          </div>
+        </form>
+        <p class="muted">Thẻ test NCB: 9704198526191432198, OTP: 123456.</p>
+      </div>
+    </section>
+  `;
+}
+
 function handleReturn(req, res, url) {
   const params = Object.fromEntries(url.searchParams.entries());
   const validHash = verifyVnpayHash(params);
@@ -234,13 +400,7 @@ function handleReturn(req, res, url) {
   }
 
   const statusClass = success ? "success" : "failed";
-  const message = success ? "Thanh toán thành công" : "Giao dịch thất bại";
-  sendHtml(res, "Kết quả thanh toán", `
-    <h1 class="${statusClass}">${message}</h1>
-    <p class="muted">Xác thực chữ ký: ${validHash ? "Hợp lệ" : "Không hợp lệ"}</p>
-    <table>${importantRows(params)}</table>
-    <a class="button" href="/">Tạo giao dịch mới</a>
-  `);
+  return sendHtml(res, "Kết quả thanh toán", renderResult(params, validHash, success, statusClass, success ? "Thanh toán thành công" : "Giao dịch thất bại"));
 }
 
 function handleIpn(res, url) {
@@ -269,19 +429,7 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/") {
     const usingDemoConfig = config.tmnCode === "DEMO_TMN_CODE" || config.hashSecret === "DEMO_HASH_SECRET";
-    return sendHtml(res, "Thanh toán VNPAY", `
-      <h1>Demo thanh toán qua VNPAY</h1>
-      ${usingDemoConfig ? "<p class=\"failed\">Bạn đang dùng cấu hình placeholder. VNPAY thật sẽ báo 'Không tìm thấy website' cho tới khi điền TmnCode và HashSecret sandbox hợp lệ trong file .env.</p>" : ""}
-      <form method="post" action="/create-payment">
-        <label for="amount">Số tiền thanh toán (VND)</label>
-        <input id="amount" name="amount" type="number" min="10000" step="1000" value="100000" required>
-        <button type="submit">Thanh toán qua VNPAY</button>
-      </form>
-      <form method="post" action="/simulate-payment">
-        <input name="amount" type="hidden" value="100000">
-        <button type="submit" style="background:#475467">Xem kết quả giả lập local</button>
-      </form>
-    `);
+    return sendHtml(res, "Thanh toán VNPAY", renderHome(usingDemoConfig));
   }
 
   if (req.method === "POST" && url.pathname === "/create-payment") {
