@@ -110,7 +110,7 @@ setup_styles(doc)
 
 title = doc.add_paragraph()
 title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-run = title.add_run("Bài tập về nhà Nhóm 2 - Tích hợp VNPAY")
+run = title.add_run("Bài tập về nhà - Tích hợp VNPAY")
 run.bold = True
 run.font.size = Pt(20)
 run.font.color.rgb = RGBColor(11, 37, 69)
