@@ -1,0 +1,6 @@
+node_modules/
+.env
+*.log
+.DS_Store
+rendered_docx/
+MSSV_HOTEN_BTVN_Nhom2.docx

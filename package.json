@@ -1,0 +1,16 @@
+{
+  "name": "vnpay-homework-group2",
+  "version": "1.0.0",
+  "description": "Demo tich hop thanh toan VNPAY sandbox cho bai tap nhom 2.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "vnpay",
+    "payment",
+    "sandbox"
+  ],
+  "author": "",
+  "license": "MIT"
+}
