@@ -124,7 +124,9 @@ function parseBody(req) {
 function getClientIp(req) {
   const forwarded = req.headers["x-forwarded-for"];
   const ip = Array.isArray(forwarded) ? forwarded[0] : (forwarded || req.socket.remoteAddress || "127.0.0.1").split(",")[0];
-  return ip === "::1" ? "127.0.0.1" : ip;
+  if (ip === "::1") return "127.0.0.1";
+  if (ip.startsWith("::ffff:")) return ip.replace("::ffff:", "");
+  return ip;
 }
 
 function createPaymentUrl(amount, req) {
