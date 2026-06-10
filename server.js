@@ -59,15 +59,9 @@ function stringifyParams(params) {
     .join("&");
 }
 
-function stringifyParamsRaw(params) {
-  return Object.entries(params)
-    .map(([key, value]) => `${key}=${value}`)
-    .join("&");
-}
-
 function createSecureHash(params) {
   const sorted = sortObject(params);
-  const signData = stringifyParamsRaw(sorted);
+  const signData = stringifyParams(sorted);
   return crypto.createHmac("sha512", config.hashSecret).update(signData, "utf8").digest("hex");
 }
 
